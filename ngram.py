@@ -10,5 +10,7 @@ def get_ngrams(n, text):
 
 
 if __name__ == "__main__":
-    a = get_ngrams(4, ["ab", "cd", "ed", "df", "df"])
-    print(next(a))
+    n = 3
+    text = ["ab", "cd", "ed", "df", "df"]
+    for (a, b) in get_ngrams(n, text):
+        print("Word:" + a + "Context: " + str(b))
