@@ -1,2 +1,3 @@
 # Files from the IDE
 .idea/
+__pycache__/
