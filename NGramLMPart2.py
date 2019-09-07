@@ -1,5 +1,7 @@
+from ngram import *
 import os
-import math
+import random
+random.seed(1)
 
 
 class NGramLMPart2:
@@ -11,9 +13,14 @@ class NGramLMPart2:
         self.vocabulary = {"<s>": self.n - 1, "</s>": 1}
 
     def update(self, text):
+        if not text:
+            return
+        # print("Original: " + str(text))
         # Pad the input list with <s> and </s>
-        [text.insert(i, "<s>") for i in range(self.n-1)]
+        [text.insert(i, "<s>") for i in range(self.n - 1)]
+        # print("After tag: " + str(text))
         text.insert(len(text), "</s>")
+        # print("End tag: " + str(text))
 
         # Count the no of ngrams
         for i in range(len(text) - self.n + 1):
@@ -89,6 +96,12 @@ class NGramLMPart2:
         for line in file:
             self.update(line.split())
 
+        # file = open("../../../files/output.txt", "w+")
+        # file.write(str(self.ngram_counts))
+        # file.close()
+        # print(self.ngram_counts)
+        # print(self.context_counts)
+
     def word_prob(self, word, context, delta=0):
         if delta is 0:
             prob = 1 / len(self.vocabulary)
@@ -96,12 +109,14 @@ class NGramLMPart2:
         # Replace word in ngram with <unk> if word not in vocab
         ngram_tuple = tuple(context) + (word,)
         ngram_list_with_unk = []
-        for word in ngram_tuple:
-            if word not in self.vocabulary:
+        for words in ngram_tuple:
+            if words not in self.vocabulary:
                 ngram_list_with_unk.append("<unk>")
             else:
-                ngram_list_with_unk.append(word)
+                ngram_list_with_unk.append(words)
         ngram_count = self.ngram_counts.get(tuple(ngram_list_with_unk))
+        # print(tuple(ngram_list_with_unk))
+        # print("Ngram Count: " + str(ngram_count))
 
         if ngram_count is not None:
             numerator = ngram_count + delta
@@ -110,12 +125,15 @@ class NGramLMPart2:
 
         # Replace word in context with <unk> if word not in vocab
         context_list_with_unk = []
-        for word in context:
-            if word not in self.vocabulary:
+        for words in context:
+            if words not in self.vocabulary:
                 context_list_with_unk.append("<unk>")
             else:
-                context_list_with_unk.append(word)
+                context_list_with_unk.append(words)
         context_count = self.context_counts.get(tuple(context_list_with_unk))
+        # print(self.context_counts)
+        # print("Context Count: " + str(context_count))
+        # print(tuple(context_list_with_unk))
 
         if context_count is not None:
             denominator = context_count + delta * len(self.vocabulary)
@@ -131,4 +149,108 @@ class NGramLMPart2:
             prob = numerator / denominator
         return prob
 
+    def random_word(self, context, delta=0):
+        r = random.random()
+        start_prob = 0
+        # insert <s> if length of context is less than context size
+        if len(context) < self.n - 1:
+            for i in range(self.n - len(context) - 1):
+                context = ["<s>"] + context
 
+        elif len(context) > self.n - 1:
+            context = context[-self.n + 1:]
+
+        for key in sorted(self.vocabulary.keys()):
+            end_prob = start_prob + self.word_prob(key, context, delta)
+            if start_prob <= r < end_prob:
+                return key
+            start_prob = end_prob
+
+    def likeliest_word(self, context, delta=0):
+        max_prob = 0
+
+        # insert <s> if length of context is less than context size
+        if len(context) < self.n - 1:
+            for i in range(self.n - len(context) - 1):
+                context = ["<s>"] + context
+            # print(context)
+
+        elif len(context) > self.n - 1:
+            context = context[-self.n + 1:]
+
+        # print(model.context_counts)
+        # print(model.ngram_counts)
+        for key in sorted(self.vocabulary.keys()):
+            prob = self.word_prob(key, context, delta)
+            # print(key + str(prob))
+            if prob > max_prob:
+                max_prob = prob
+                word = key
+        # print(word + str(max_prob))
+        return word
+
+
+def random_text(model, max_length, delta=0):
+    sentence = '<s> father'
+    initial_length = len(sentence.split(" ")) - 1
+    i = 1
+    while i <= max_length - initial_length:
+        next_word = model.random_word(sentence.split(" "))
+        sentence = sentence + " " + next_word
+        i = i + 1
+        if next_word == '</s>':
+            break
+    return sentence
+
+
+def likeliest_text(model, max_length, delta=0):
+    sentence = '<s> Madam, the young'
+    initial_length = len(sentence.split(" ")) - 1
+    i = 1
+    while i <= max_length - initial_length:
+        next_word = model.likeliest_word(sentence.split(" "))
+        sentence = sentence + " " + next_word
+        i = i + 1
+        if next_word == '</s>':
+            break
+    return sentence
+
+
+if __name__ == "__main__":
+    # Random word generator
+    n = 5
+    corpus_path = "../../../files/shakespeare.txt"
+    # context = "Weep not,".split()
+
+    model2 = NGramLMPart2(2)
+    model3 = NGramLMPart2(3)
+    model4 = NGramLMPart2(4)
+    model5 = NGramLMPart2(5)
+    #
+    model2.create_ngramlm(corpus_path)
+    model3.create_ngramlm(corpus_path)
+    # print(model3.ngram_counts)
+    # print(model3.word_prob('</s>', ['is', '\'em']))
+
+    # print(model3.context_counts)
+    model4.create_ngramlm(corpus_path)
+    model5.create_ngramlm(corpus_path)
+
+    print(likeliest_text(model2, 10, 0))
+    print(likeliest_text(model3, 10, 0))
+    print(likeliest_text(model4, 10, 0))
+    print(likeliest_text(model5, 10, 0))
+    # print(text_prob(model, context, delta=0))
+    # print(model.word_prob("we", context, delta=0))
+    # word = model.random_word(context, delta=0)
+    # print(word)
+    # print(str(model.ngram_counts))
+    # print(str(model.context_counts))
+    # print(model.random_word(context, delta=0))
+    # print(model.ngram_counts[tuple(context + ['zrawn.'])])
+    # print(model.context_counts[tuple(context)])
+    # print(model.word_prob('zrawn.', tuple(context)))
+
+    # 4.1
+    # print(random_text(model, 10, 0))
+    # print(likeliest_text(model, 10, 0))

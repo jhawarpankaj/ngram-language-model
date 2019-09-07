@@ -4,14 +4,14 @@ import math
 
 
 def get_ngrams(n, text):
-
     # Adding begin and end word
     [text.insert(i, "<s>") for i in range(0, n-1)]
     text.append("</s>")
 
     # return a generator object for all n-grams
     for i in range(n-1, len(text)):
-        yield text[i], tuple(text[i-n+1: i])
+        yield text[i], tuple(text[i - n + 1: i])
+    return
 
 
 def text_prob(model, text, delta=0):
@@ -46,9 +46,14 @@ def perplexity(model, corpus_path, delta=0):
 
 if __name__ == "__main__":
     n = 3
+    text = ["ab", "cd", "ed", "df", "df"]
+    for (a, b) in get_ngrams(n, text):
+        print("Word:" + a + ", Context: " + str(b))
+
     # text = ["ab", "cd", "ed", "df", "df"]
-    # for (a, b) in get_ngrams(n, text):
-    #     print("Word:" + a + ", Context: " + str(b))
+    print("dsdddddddddd" + str(text))
+    for (a, b) in get_ngrams(n, text):
+        print("Word:" + a + ", Context: " + str(b))
 
     # model = NGramLM(n)
     # masked_file_name = model.mask_rare("../../../files/warpeace.txt")
@@ -86,15 +91,15 @@ if __name__ == "__main__":
     # print(model.text_prob(model, list("Where is the prince, my Dauphin?".split(" "))))
 
     # # Perplexity
-    model1 = NGramLMPart2(3)
-    model2 = NGramLMPart2(3)
-    training_data1 = "../../../files/shakespeare.txt"
-    training_data2 = "../../../files/warpeace.txt"
-    test_data = "../../../files/sonnets.txt"
-    model1.create_ngramlm(training_data1)
-    model2.create_ngramlm(training_data2)
-    p1 = perplexity(model1, test_data, delta=0.5)
-    p2 = perplexity(model2, test_data, delta=0.5)
-    print(str(p1))
-    print(str(p2))
+    # model1 = NGramLMPart2(3)
+    # model2 = NGramLMPart2(3)
+    # training_data1 = "../../../files/shakespeare.txt"
+    # training_data2 = "../../../files/warpeace.txt"
+    # test_data = "../../../files/sonnets.txt"
+    # model1.create_ngramlm(training_data1)
+    # model2.create_ngramlm(training_data2)
+    # p1 = perplexity(model1, test_data, delta=0)
+    # p2 = perplexity(model2, test_data, delta=0.5)
+    # print(str(p1))
+    # print(str(p2))
 
