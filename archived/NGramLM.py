@@ -1,3 +1,6 @@
+import copy
+
+
 class NGramLM:
 
     def __init__(self, n):
@@ -7,16 +10,16 @@ class NGramLM:
         self.vocabulary = {"<s>", "</s>"}
 
     def update(self, text):
-
+        temp = copy.copy(text)
         # Pad the input list with <s> and </s>
-        [text.insert(i, "<s>") for i in range(self.n-1)]
-        text.insert(len(text), "</s>")
+        [temp.insert(i, "<s>") for i in range(self.n-1)]
+        text.insert(len(temp), "</s>")
 
         # Count the no of ngrams
-        for i in range(len(text) - self.n + 1):
+        for i in range(len(temp) - self.n + 1):
             ngram_list = []
             for j in range(i, i + self.n):
-                ngram_list.append(text[j])
+                ngram_list.append(temp[j])
             ngram_tuple = tuple(ngram_list)
             if ngram_tuple in self.ngram_counts:
                 count = self.ngram_counts.get(ngram_tuple)
@@ -25,10 +28,10 @@ class NGramLM:
                 self.ngram_counts[ngram_tuple] = 1
 
         # Count the no of contexts
-        for i in range(len(text) - self.n + 2):
+        for i in range(len(temp) - self.n + 2):
             context_list = []
             for j in range(i, i + self.n - 1):
-                context_list.append(text[j])
+                context_list.append(temp[j])
             context_tuple = tuple(context_list)
             if context_tuple in self.context_counts:
                 count = self.context_counts.get(context_tuple)
@@ -37,7 +40,7 @@ class NGramLM:
                 self.context_counts[context_tuple] = 1
 
         # Update the vocabulary
-        {self.vocabulary.add(word) for word in text}
+        {self.vocabulary.add(word) for word in temp}
 
     def create_ngramlm(self, corpus_path):
         file = open(corpus_path)
@@ -53,4 +56,6 @@ class NGramLM:
             ngram_count = 0
         if context_count is not None:
             prob = ngram_count/context_count
+        print("Word: " + str(word) + ", context: " + str(
+            context) + ", ngram_count: " + str(ngram_count) + ", context_count: " + str(context_count) + ", prob: " + str(prob))
         return prob
